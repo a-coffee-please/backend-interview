@@ -4,23 +4,51 @@
  * Module dependencies.
  */
 
-require('dotenv').config('./.env')
-var app = require('./app')
-var debug = require('debug')('backend-interview:server')
-var http = require('http')
+const dotenv = require('dotenv')
+const app = require('./app')
+const debug = require('debug')('backend-interview:server')
+const http = require('http')
+
+dotenv.config()
+const { Pool } = require('pg')
+
+/**
+ * Connect with Postgress
+ */
+
+const connectDb = async () => {
+  try {
+    const pool = new Pool({
+      user: process.env.PGUSER,
+      host: process.env.PGHOST,
+      database: process.env.PGDATABASE,
+      password: process.env.PGPASSWORD,
+      port: process.env.PGPORT,
+    })
+
+    await pool.connect()
+    const res = await pool.query('SELECT * FROM accounts;')
+    console.log('Connected to PostgresSQL')
+    await pool.end()
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+connectDb()
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000')
+const port = normalizePort(process.env.PORT || '3000')
 app.set('port', port)
 
 /**
  * Create HTTP server.
  */
 
-var server = http.createServer(app)
+const server = http.createServer(app)
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -35,7 +63,7 @@ server.on('listening', onListening)
  */
 
 function normalizePort(val) {
-  var port = parseInt(val, 10)
+  const port = parseInt(val, 10)
 
   if (isNaN(port)) {
     // named pipe
@@ -59,7 +87,7 @@ function onError(error) {
     throw error
   }
 
-  var bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
+  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
@@ -81,7 +109,7 @@ function onError(error) {
  */
 
 function onListening() {
-  var addr = server.address()
-  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
+  const addr = server.address()
+  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port
   console.log('Listening on', bind, `http://localhost:${port}/`)
 }
